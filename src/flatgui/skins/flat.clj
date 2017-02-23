@@ -163,41 +163,49 @@ flatgui.skins.flat
     (drawLine (px) ~'h- ~'w- ~'h-)
     (drawLine ~'w- (px) ~'w- ~'h-2)])
 
+; TODO remove this after switching to round rects
+;(defn draw-component-rect [w h panel-color component-color]
+;  (let [mc1 (mix-colors31 component-color panel-color)
+;        mc2 (mix-colors31 panel-color component-color)]
+;    [(setColor component-color)
+;     (drawLine (+px 0 2) 0 (-px w 3) 0)
+;     (drawLine (+px 0 2) (-px h 1) (-px w 3) (-px h 1))
+;     (drawLine 0 (+px 0 2) 0 (-px h 3))
+;     (drawLine (-px w 1) (+px 0 2) (-px w 1) (-px h 3))
+;     (setColor mc1)
+;     (drawLine 0 (px) (px) 0)
+;     (drawLine 0 (-px h 2) (px) (-px h 1))
+;     (drawLine (-px w 2) 0 (-px w 1) (px))
+;     (drawLine (-px w 2) (-px h 1) (-px w 1) (-px h 2))
+;     (setColor mc2)
+;     (drawLine 0 0 (px) (px))
+;     (drawLine 0 (-px h 1) (px) (-px h 2))
+;     (drawLine (-px w 2) (px) (-px w 1) 0)
+;     (drawLine (-px w 2) (-px h 2) (-px w 1) (-px h 1))
+;     ]))
+;
+;
+;(defn fill-component-rect [w h panel-color component-color]
+;  (let [mc (mix-colors component-color panel-color)]
+;    [(setColor mc)
+;     (drawLine (px) 0 (-px w 2) 0)
+;     (drawLine 0 (px) (-px w 1) (px))
+;     (drawLine 0 (-px h 2) (-px w 1) (-px h 2))
+;     (drawLine (px) (-px h 1) (-px w 2) (-px h 1))
+;     (setColor component-color)
+;     (drawLine (+px 0 2) 0 (-px w 3) 0)
+;     (drawLine (px) (px) (-px w 2) (px))
+;     (drawLine (px) (-px h 2) (-px w 2) (-px h 2))
+;     (drawLine (+px 0 2) (-px h 1) (-px w 3) (-px h 1))
+;     (fillRect 0 (+px 0 2) w (-px h 4))]))
 
 (defn draw-component-rect [w h panel-color component-color]
-  (let [mc1 (mix-colors31 component-color panel-color)
-        mc2 (mix-colors31 panel-color component-color)]
-    [(setColor component-color)
-     (drawLine (+px 0 2) 0 (-px w 3) 0)
-     (drawLine (+px 0 2) (-px h 1) (-px w 3) (-px h 1))
-     (drawLine 0 (+px 0 2) 0 (-px h 3))
-     (drawLine (-px w 1) (+px 0 2) (-px w 1) (-px h 3))
-     (setColor mc1)
-     (drawLine 0 (px) (px) 0)
-     (drawLine 0 (-px h 2) (px) (-px h 1))
-     (drawLine (-px w 2) 0 (-px w 1) (px))
-     (drawLine (-px w 2) (-px h 1) (-px w 1) (-px h 2))
-     (setColor mc2)
-     (drawLine 0 0 (px) (px))
-     (drawLine 0 (-px h 1) (px) (-px h 2))
-     (drawLine (-px w 2) (px) (-px w 1) 0)
-     (drawLine (-px w 2) (-px h 2) (-px w 1) (-px h 1))
-     ]))
-
+  [(setColor component-color)
+   (drawRoundRect 0 0 w h (/ 1 16))])
 
 (defn fill-component-rect [w h panel-color component-color]
-  (let [mc (mix-colors component-color panel-color)]
-    [(setColor mc)
-     (drawLine (px) 0 (-px w 2) 0)
-     (drawLine 0 (px) (-px w 1) (px))
-     (drawLine 0 (-px h 2) (-px w 1) (-px h 2))
-     (drawLine (px) (-px h 1) (-px w 2) (-px h 1))
-     (setColor component-color)
-     (drawLine (+px 0 2) 0 (-px w 3) 0)
-     (drawLine (px) (px) (-px w 2) (px))
-     (drawLine (px) (-px h 2) (-px w 2) (-px h 2))
-     (drawLine (+px 0 2) (-px h 1) (-px w 3) (-px h 1))
-     (fillRect 0 (+px 0 2) w (-px h 4))]))
+  [(setColor component-color)
+   (fillRoundRect 0 0 w h (/ 1 16))])
 
 (defn draw-leftsmooth-component-rect [w h panel-color component-color]
   (let [mc1 (mix-colors31 component-color panel-color)
@@ -518,11 +526,12 @@ flatgui.skins.flat
 
 (deflookfn checkbox-look (:theme :has-mouse :pressed :focus-state :foreground :v-alignment :h-alignment :text)
            ;(call-look component-look)
-           [(fill-component-rect h- h- (:prime-3 theme) (:prime-1 theme))
+           [(fill-component-rect h h (:prime-3 theme) (:prime-1 theme))
             (if (has-focus)
               [(draw-component-rect h h (:prime-3 theme) (:focused theme))
-               (setColor (:focused theme))
-               (drawRect (awt/px) (awt/px) (awt/-px h 3) (awt/-px h 3))])
+               ;(setColor (:focused theme))
+               ;(drawRect (awt/px) (awt/px) (awt/-px h 3) (awt/-px h 3))
+               ])
             (if pressed
               (let [lx1 (* h 0.25)
                     ly1 (* h 0.375)
