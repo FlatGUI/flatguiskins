@@ -17,6 +17,8 @@ flatgui.skins.flat
   (:require [flatgui.awt :as awt]
             [flatgui.util.matrix :as m]))
 
+(def round-rect-r (/ 1 16))
+
 ;;;
 ;;; Component
 ;;;
@@ -148,177 +150,44 @@ flatgui.skins.flat
 
 (defmacro has-focus [] `(= :has-focus (:mode ~'focus-state)))
 
-(defmacro set-component-color []
-  `(setColor (:prime-1 ~'theme)))
+(defn draw-component-rect
+  ([x y w h panel-color component-color]
+   [(setColor component-color)
+    (drawRoundRect x y w h round-rect-r)])
+  ([w h panel-color component-color]
+   (draw-component-rect 0 0 w h panel-color component-color)))
 
-;(defmacro draw-component-rect []
-;  `[(drawLine (px) 0 ~'w-2 0)
-;    (drawLine 0 (px) 0 ~'h-2)
-;    (drawLine (px) ~'h- ~'w-2 ~'h-)
-;    (drawLine ~'w- (px) ~'w- ~'h-2)])
+(defn fill-component-rect
+  ([x y w h panel-color component-color]
+   [(setColor component-color)
+    (fillRoundRect x y w h round-rect-r)])
+  ([w h panel-color component-color]
+    (fill-component-rect 0 0 w h panel-color component-color)))
 
-(defmacro draw-leftsmooth-rect []
-  `[(drawLine (px) 0 ~'w- 0)
-    (drawLine 0 (px) 0 ~'h-2)
-    (drawLine (px) ~'h- ~'w- ~'h-)
-    (drawLine ~'w- (px) ~'w- ~'h-2)])
+(defn draw-leftsmoothbutton-component-rect [w h belongs-to-focused-editor theme background]
+  (let [g (if belongs-to-focused-editor 2 1)]
+    [(fill-component-rect w h nil (if belongs-to-focused-editor (:focused theme) (:prime-2 theme)))
+     (fillRect 0 0 (* round-rect-r 2) h)
+     (fill-component-rect (awt/+px 0 g) (awt/+px 0 g) (awt/-px w (* g 2)) (awt/-px h (* g 2)) nil background)
+     (fillRect 0 (awt/+px 0 g) (* round-rect-r 2) (awt/-px h (* g 2)))]))
 
-; TODO remove this after switching to round rects
-;(defn draw-component-rect [w h panel-color component-color]
-;  (let [mc1 (mix-colors31 component-color panel-color)
-;        mc2 (mix-colors31 panel-color component-color)]
-;    [(setColor component-color)
-;     (drawLine (+px 0 2) 0 (-px w 3) 0)
-;     (drawLine (+px 0 2) (-px h 1) (-px w 3) (-px h 1))
-;     (drawLine 0 (+px 0 2) 0 (-px h 3))
-;     (drawLine (-px w 1) (+px 0 2) (-px w 1) (-px h 3))
-;     (setColor mc1)
-;     (drawLine 0 (px) (px) 0)
-;     (drawLine 0 (-px h 2) (px) (-px h 1))
-;     (drawLine (-px w 2) 0 (-px w 1) (px))
-;     (drawLine (-px w 2) (-px h 1) (-px w 1) (-px h 2))
-;     (setColor mc2)
-;     (drawLine 0 0 (px) (px))
-;     (drawLine 0 (-px h 1) (px) (-px h 2))
-;     (drawLine (-px w 2) (px) (-px w 1) 0)
-;     (drawLine (-px w 2) (-px h 2) (-px w 1) (-px h 1))
-;     ]))
-;
-;
-;(defn fill-component-rect [w h panel-color component-color]
-;  (let [mc (mix-colors component-color panel-color)]
-;    [(setColor mc)
-;     (drawLine (px) 0 (-px w 2) 0)
-;     (drawLine 0 (px) (-px w 1) (px))
-;     (drawLine 0 (-px h 2) (-px w 1) (-px h 2))
-;     (drawLine (px) (-px h 1) (-px w 2) (-px h 1))
-;     (setColor component-color)
-;     (drawLine (+px 0 2) 0 (-px w 3) 0)
-;     (drawLine (px) (px) (-px w 2) (px))
-;     (drawLine (px) (-px h 2) (-px w 2) (-px h 2))
-;     (drawLine (+px 0 2) (-px h 1) (-px w 3) (-px h 1))
-;     (fillRect 0 (+px 0 2) w (-px h 4))]))
+(defn draw-leftsmoothbutton-top-component-rect [w h belongs-to-focused-editor theme background]
+  (let [g (if belongs-to-focused-editor 2 1)]
+    [(fill-component-rect w h nil (if belongs-to-focused-editor (:focused theme) (:prime-2 theme)))
+     (fillRect 0 0 (* round-rect-r 2) h)
+     (fillRect (- w (* round-rect-r 2)) (/ h 2) (* round-rect-r 2) (/ h 2))
+     (fill-component-rect (awt/+px 0 g) (awt/+px 0 g) (awt/-px w (* g 2)) (awt/-px h (* g 2)) nil background)
+     (fillRect 0 (awt/+px 0 g) (* round-rect-r 2) (awt/-px h g))
+     (fillRect 0 (/ h 2) (awt/-px w g) (/ h 2))]))
 
-(defn draw-component-rect [w h panel-color component-color]
-  [(setColor component-color)
-   (drawRoundRect 0 0 w h (/ 1 16))])
-
-(defn fill-component-rect [w h panel-color component-color]
-  [(setColor component-color)
-   (fillRoundRect 0 0 w h (/ 1 16))])
-
-(defn draw-leftsmooth-component-rect [w h panel-color component-color]
-  (let [mc1 (mix-colors31 component-color panel-color)
-        mc2 (mix-colors31 panel-color component-color)]
-    [(setColor component-color)
-     (drawLine (+px 0 2) 0 (-px w) 0)
-     (drawLine (+px 0 2) (-px h 1) (-px w) (-px h 1))
-     (drawLine 0 (+px 0 2) 0 (-px h 3))
-     ;(drawLine (-px w 1) (+px 0 2) (-px w 1) (-px h 3))
-     (setColor mc1)
-     (drawLine 0 (px) (px) 0)
-     (drawLine 0 (-px h 2) (px) (-px h 1))
-     ;(drawLine (-px w 2) 0 (-px w 1) (px))
-     ;(drawLine (-px w 2) (-px h 1) (-px w 1) (-px h 2))
-     (setColor mc2)
-     (drawLine 0 0 (px) (px))
-     (drawLine 0 (-px h 1) (px) (-px h 2))
-     ;(drawLine (-px w 2) (px) (-px w 1) 0)
-     ;(drawLine (-px w 2) (-px h 2) (-px w 1) (-px h 1))
-     ]))
-
-(defn fill-leftsmooth-component-rect [w h panel-color component-color]
-  (let [mc (mix-colors component-color panel-color)]
-    [(setColor mc)
-     (drawLine 0 0 (-px w 2) 0)
-     (drawLine 0 (px) (-px w 1) (px))
-     (drawLine 0 (-px h 2) (-px w 1) (-px h 2))
-     (drawLine 0 (-px h 1) (-px w 2) (-px h 1))
-     (setColor component-color)
-     (drawLine 0 0 (-px w 3) 0)
-     (drawLine 0 (px) (-px w 2) (px))
-     (drawLine 0 (-px h 2) (-px w 2) (-px h 2))
-     (drawLine 0 (-px h 1) (-px w 3) (-px h 1))
-     (fillRect 0 (+px 0 2) w (-px h 4))]))
-
-(defn draw-leftsmoothbutton-component-rect [w h panel-color component-color]
-  (let [mc (mix-colors component-color panel-color)]
-    [(setColor mc)
-     (drawLine 0 0 (-px w 2) 0)
-     (drawLine 0 (px) (-px w 1) (px))
-     (drawLine 0 (-px h 2) (-px w 1) (-px h 2))
-     (drawLine 0 (-px h 1) (-px w 2) (-px h 1))
-     (setColor component-color)
-     (drawLine 0 0 (-px w 3) 0)
-     (drawLine 0 (px) (-px w 2) (px))
-     (drawLine 0 (-px h 2) (-px w 2) (-px h 2))
-     (drawLine 0 (-px h 1) (-px w 3) (-px h 1))
-     (drawLine 0 (px) 0 (-px h 2))
-     (drawLine (-px w 1) (px) (-px w 1) (-px h 2))
-     (drawLine w (+px 0 2) w (-px h 3))]))
-
-(defn fill-leftsmooth-btm-component-rect [w h panel-color component-color]
-  (let [mc (mix-colors component-color panel-color)]
-    [(setColor mc)
-     ;(drawLine 0 0 (-px w 2) 0)
-     ;(drawLine 0 (px) (-px w 1) (px))
-     (drawLine 0 (-px h 2) (-px w 1) (-px h 2))
-     (drawLine 0 (-px h 1) (-px w 2) (-px h 1))
-     (setColor component-color)
-     ;(drawLine 0 0 (-px w 3) 0)
-     ;(drawLine 0 (px) (-px w 2) (px))
-     (drawLine 0 (-px h 2) (-px w 2) (-px h 2))
-     (drawLine 0 (-px h 1) (-px w 3) (-px h 1))
-     (fillRect 0 0 w (-px h 2))]))
-
-(defn draw-leftsmoothbutton-btm-component-rect [w h panel-color component-color]
-  (let [mc (mix-colors component-color panel-color)]
-    [(setColor mc)
-     ;(drawLine 0 0 (-px w 2) 0)
-     ;(drawLine 0 (px) (-px w 1) (px))
-     (drawLine 0 (-px h 2) (-px w 1) (-px h 2))
-     (drawLine 0 (-px h 1) (-px w 2) (-px h 1))
-     (setColor component-color)
-     ;(drawLine 0 0 w 0)
-     ;(drawLine 0 (px) (-px w 2) (px))
-     (drawLine 0 (-px h 2) (-px w 2) (-px h 2))
-     (drawLine 0 (-px h 1) (-px w 3) (-px h 1))
-
-     (drawLine 0 0 0 (-px h 2))
-     (drawLine (-px w 1) 0 (-px w 1) (-px h 2))
-     (drawLine w 0 w (-px h 3))]))
-
-(defn fill-leftsmooth-top-component-rect [w h panel-color component-color]
-  (let [mc (mix-colors component-color panel-color)]
-    [(setColor mc)
-     (drawLine 0 0 (-px w 2) 0)
-     (drawLine 0 (px) (-px w 1) (px))
-     ;(drawLine 0 (-px h 2) (-px w 1) (-px h 2))
-     ;(drawLine 0 (-px h 1) (-px w 2) (-px h 1))
-     (setColor component-color)
-     (drawLine 0 0 (-px w 3) 0)
-     (drawLine 0 (px) (-px w 2) (px))
-     ;(drawLine 0 (-px h 2) (-px w 2) (-px h 2))
-     ;(drawLine 0 (-px h 1) (-px w 3) (-px h 1))
-     (fillRect 0 (+px 0 2) w (-px h 2))]))
-
-(defn draw-leftsmoothbutton-top-component-rect [w h panel-color component-color]
-  (let [mc (mix-colors component-color panel-color)]
-    [(setColor mc)
-     (drawLine 0 0 (-px w 2) 0)
-     (drawLine 0 (px) (-px w 1) (px))
-     ;(drawLine 0 (-px h 2) (-px w 1) (-px h 2))
-     ;(drawLine 0 (-px h 1) (-px w 2) (-px h 1))
-     (setColor component-color)
-     (drawLine 0 0 (-px w 3) 0)
-     (drawLine 0 (px) (-px w 2) (px))
-     ;(drawLine 0 (-px h 2) (-px w 2) (-px h 2))
-     ;(drawLine 0 (-px h 1) w (-px h 1))
-
-     (drawLine 0 (px) 0 (-px h 1))
-     (drawLine (-px w 1) (px) (-px w 1) h)
-     (drawLine w (+px 0 2) w h)]))
-
+(defn draw-leftsmoothbutton-btm-component-rect [w h belongs-to-focused-editor theme background]
+  (let [g (if belongs-to-focused-editor 2 1)]
+    [(fill-component-rect w h nil (if belongs-to-focused-editor (:focused theme) (:prime-2 theme)))
+     (fillRect 0 0 (* round-rect-r 2) h)
+     (fillRect (- w (* round-rect-r 2)) 0 (* round-rect-r 2) (/ h 2))
+     (fill-component-rect (awt/+px 0 g) (awt/+px 0 g) (awt/-px w (* g 2)) (awt/-px h (* g 2)) nil background)
+     (fillRect 0 0 (* round-rect-r 2) (awt/-px h g))
+     (fillRect 0 0 (awt/-px w g) (/ h 2))]))
 
 ;;;
 ;;; Panel
@@ -371,88 +240,100 @@ flatgui.skins.flat
    (drawLine (+px lx1 3) ly1 lx2 (+px ly2 3))
    (drawLine lx2 (+px ly2 3) (-px lx3 3) ly3)])
 
-(defn arrow-down [lx1 ly1 lx2 ly2 lx3 ly3 theme fg bg]
-  [(setColor (mix-colors fg bg))
+;(defn arrow-down [lx1 ly1 lx2 ly2 lx3 ly3 theme fg bg]
+;  [(setColor (mix-colors fg bg))
+;
+;   (drawLine lx1 ly1 lx2 ly2)
+;   (drawLine lx2 ly2 lx3 ly3)
+;
+;   (setColor fg)
+;
+;   (drawLine (+px lx1) ly1 (-px lx3) ly3)
+;
+;   (drawLine (+px lx1) ly1 lx2 (-px ly2))
+;   (drawLine lx2 (-px ly2) (-px lx3) ly3)
+;
+;   (drawLine (+px lx1 2) ly1 lx2 (-px ly2 2))
+;   (drawLine lx2 (-px ly2 2) (-px lx3 2) ly3)
+;
+;   (drawLine (+px lx1 3) ly1 lx2 (-px ly2 3))
+;   (drawLine lx2 (-px ly2 3) (-px lx3 3) ly3)])
 
-   (drawLine lx1 ly1 lx2 ly2)
-   (drawLine lx2 ly2 lx3 ly3)
-
-   (setColor fg)
-
-   (drawLine (+px lx1) ly1 (-px lx3) ly3)
-
-   (drawLine (+px lx1) ly1 lx2 (-px ly2))
-   (drawLine lx2 (-px ly2) (-px lx3) ly3)
-
-   (drawLine (+px lx1 2) ly1 lx2 (-px ly2 2))
-   (drawLine lx2 (-px ly2 2) (-px lx3 2) ly3)
-
-   (drawLine (+px lx1 3) ly1 lx2 (-px ly2 3))
-   (drawLine lx2 (-px ly2 3) (-px lx3 3) ly3)])
+(defn arrow [x y w h theme up]
+  (let [ye (if up 0.5 0.375)
+        ym (if up 0.375 0.5)
+        wpx (* w (/ 1 (awt/px)))
+        w (if (pos? (mod wpx 2)) w (awt/-px w))
+        lx1 (+ x (awt/+px (* w 0.25)))
+        ly1 (+ y (awt/+px (* h ye)))
+        lx2 (+ x (awt/+px (* w 0.5)))
+        ly2 (+ y (awt/+px (* h ym)))
+        lx3 (+ x (awt/+px (* w 0.75)))
+        ly3 (+ y (awt/+px (* h ye)))]
+    [(setColor (:prime-4 theme))
+     (drawLine lx1 ly1 lx2 ly2)
+     (drawLine lx2 ly2 lx3 ly3)
+     (setColor (mix-colors (:prime-4 theme) (:engaged theme)))
+     (drawLine lx1 (+px ly1) lx2 (+px ly2))
+     (drawLine lx2 (+px ly2) lx3 (+px ly3))]))
 
 
 (deflookfn spinner-up-look (:pressed :has-mouse :theme :belongs-to-focused-editor)
-           (fill-leftsmooth-top-component-rect w h (:prime-3 theme) (if pressed (:prime-2 theme) (:prime-1 theme)))
-           (if belongs-to-focused-editor
-             (draw-leftsmoothbutton-top-component-rect (awt/-px w 1) h (:prime-3 theme) (:focused theme)))
-           (setColor (:prime-4 theme))
-           (let [lx1 (* w 0.375)
-                 ly1 (- h (* w 0.0625))
-                 lx2 (* w 0.5)
-                 ly2 (- h (* w 0.25))
-                 lx3 (+px (* w 0.625))
-                 ly3 ly1]
-             (arrow-up lx1 ly1 lx2 ly2 lx3 ly3 theme (:prime-4 theme) (:prime-1 theme))))
+ (draw-leftsmoothbutton-top-component-rect (awt/-px w 1) h belongs-to-focused-editor theme (if pressed (:prime-2 theme) (:prime-1 theme)))
+ (setColor (:prime-4 theme))
+ (let [lx1 (* w 0.375)
+       ly1 (- h (* w 0.0625))
+       lx2 (* w 0.5)
+       ly2 (- h (* w 0.25))
+       lx3 (+px (* w 0.625))
+       ly3 ly1
+       dd (/ (- w h) 2)]
+   ;(arrow-up lx1 ly1 lx2 ly2 lx3 ly3 theme (:prime-4 theme) (:prime-1 theme))
+   (arrow dd 0 h h theme true)
+   ))
 
 (deflookfn spinner-down-look (:pressed :has-mouse :theme :belongs-to-focused-editor)
-           (fill-leftsmooth-btm-component-rect w h (:prime-3 theme) (if pressed (:prime-2 theme) (:prime-1 theme)))
-           (if belongs-to-focused-editor
-             (draw-leftsmoothbutton-btm-component-rect (awt/-px w 1) h (:prime-3 theme) (:focused theme)))
-           (setColor (:prime-4 theme))
-           (let [lx1 (* w 0.375)
-                 ly1 (* w 0.0625)
-                 lx2 (* w 0.5)
-                 ly2 (* w 0.25)
-                 lx3 (+px (* w 0.625))
-                 ly3 ly1]
-             (arrow-down lx1 ly1 lx2 ly2 lx3 ly3 theme (:prime-4 theme) (:prime-1 theme))))
+ (draw-leftsmoothbutton-btm-component-rect (awt/-px w 1) h belongs-to-focused-editor theme (if pressed (:prime-2 theme) (:prime-1 theme)))
+ (setColor (:prime-4 theme))
+ (let [lx1 (* w 0.375)
+       ly1 (* w 0.0625)
+       lx2 (* w 0.5)
+       ly2 (* w 0.25)
+       lx3 (+px (* w 0.625))
+       ly3 ly1
+       dd (/ (- w h) 2)]
+   ;(arrow-down lx1 ly1 lx2 ly2 lx3 ly3 theme (:prime-4 theme) (:prime-1 theme))
+   (arrow dd 0 h h theme false)
+   ))
 
 (deflookfn leftsmooth-editor-look (:has-mouse :theme :focus-state :background :editable)
-           ;(call-look panel-look)
-           (setColor background)
-           (fillRect 0 0 w h)
-           (if (has-focus)
-             [(draw-leftsmooth-component-rect w h (:prime-3 theme) (:focused theme))
-              (setColor (:focused theme))
-              (drawRect (awt/px) (awt/px) (awt/-px w 2) (awt/-px h 3))]
-             (if (or (nil? editable) (true? editable))
-               (draw-leftsmooth-component-rect w h (:prime-3 theme) (:prime-2 theme))
-               (draw-leftsmooth-component-rect w h (:prime-3 theme) background)))
-           (call-look textfield-look-impl))
+  (let [g (if (has-focus) 2 1)]
+    [(fill-component-rect (+ w round-rect-r) h nil (if (has-focus) (:focused theme) (:prime-2 theme)))
+     (fill-component-rect (awt/+px 0 g) (awt/+px 0 g) (+ w round-rect-r) (awt/-px h (* 2 g)) nil background)]))
 
 ;;;
 ;;; Combo Box
 ;;;
 
 (deflookfn combobox-arrow-button-look (:has-mouse :pressed :theme :belongs-to-focused-editor)
-           (fill-leftsmooth-component-rect w h (:prime-3 theme) (if pressed (:prime-2 theme) (:prime-1 theme)))
-           (if belongs-to-focused-editor
-             (draw-leftsmoothbutton-component-rect (awt/-px w 1) h (:prime-3 theme) (:focused theme)))
+           (draw-leftsmoothbutton-component-rect (awt/-px w 1) h belongs-to-focused-editor theme (if pressed (:prime-2 theme) (:prime-1 theme)))
            (setColor (:prime-4 theme))
-           (let [lx1 (* w 0.375)
-                 ly1 (* w 0.375)
-                 lx2 (* w 0.5)
-                 ly2 (* w 0.5)
-                 lx3 (* w 0.625)
-                 ly3 (* w 0.375)]
-             [(setColor (:prime-4 theme))
-              (drawLine lx1 (+px ly1) lx2 (+px ly2))
-              (drawLine lx2 (+px ly2) lx3 (+px ly3))
-              (setColor (mix-colors (:prime-4 theme) (:prime-1 theme)))
-              (drawLine lx1 ly1 lx2 ly2)
-              (drawLine lx2 ly2 lx3 ly3)
-              (drawLine lx1 (+px ly1 2) (-px lx2) (+px ly2 1))
-              (drawLine (+px lx2) (+px ly2 1) lx3 (+px ly3 2))]))
+           ;(let [lx1 (* w 0.375)
+           ;      ly1 (* w 0.375)
+           ;      lx2 (* w 0.5)
+           ;      ly2 (* w 0.5)
+           ;      lx3 (* w 0.625)
+           ;      ly3 (* w 0.375)]
+           ;  [(setColor (:prime-4 theme))
+           ;   (drawLine lx1 (+px ly1) lx2 (+px ly2))
+           ;   (drawLine lx2 (+px ly2) lx3 (+px ly3))
+           ;   (setColor (mix-colors (:prime-4 theme) (:prime-1 theme)))
+           ;   (drawLine lx1 ly1 lx2 ly2)
+           ;   (drawLine lx2 ly2 lx3 ly3)
+           ;   (drawLine lx1 (+px ly1 2) (-px lx2) (+px ly2 1))
+           ;   (drawLine (+px lx2) (+px ly2 1) lx3 (+px ly3 2))])
+           (arrow (/ h 4) 0 (/ h 2) h theme false)
+           )
 
 (deflookfn dropdown-content-look (:theme)
                (call-look component-look)
@@ -507,45 +388,37 @@ flatgui.skins.flat
 ;;;
 
 (deflookfn textfield-look (:has-mouse :focus-state :theme :paint-border :background)
-           ;(call-look panel-look)
-           ;(set-component-color)
-           ;(draw-component-rect)
-           (setColor background)
-           (fillRect 0 0 w h)
            (if paint-border
-             (if (has-focus)
-               [(draw-component-rect w h (:prime-3 theme) (:focused theme))
-                (setColor (:focused theme))
-                (drawRect (awt/px) (awt/px) (awt/-px w 3) (awt/-px h 3))]
-               (draw-component-rect w h (:prime-3 theme) (:prime-2 theme))))
+             (let [g (if (has-focus) 2 1)]
+               [(fill-component-rect w h nil (if (has-focus) (:focused theme) (:prime-2 theme)))
+                (fill-component-rect (awt/+px 0 g) (awt/+px 0 g) (awt/-px w (* 2 g)) (awt/-px h (* 2 g)) nil background)])
+             (fill-component-rect w h nil background))
            (call-look textfield-look-impl))
+
 
 ;;;
 ;;; Check Box
 ;;;
 
 (deflookfn checkbox-look (:theme :has-mouse :pressed :focus-state :foreground :v-alignment :h-alignment :text)
-           ;(call-look component-look)
-           [(fill-component-rect h h (:prime-3 theme) (:prime-1 theme))
-            (if (has-focus)
-              [(draw-component-rect h h (:prime-3 theme) (:focused theme))
-               ;(setColor (:focused theme))
-               ;(drawRect (awt/px) (awt/px) (awt/-px h 3) (awt/-px h 3))
-               ])
-            (if pressed
-              (let [lx1 (* h 0.25)
-                    ly1 (* h 0.375)
-                    lx2 (* h 0.375)
-                    ly2 (* h 0.5)
-                    lx3 (* h 0.625)
-                    ly3 (* h 0.25)]
-                [(setColor (:prime-4 theme))
-                 (drawLine lx1 ly1 lx2 ly2)
-                 (drawLine lx2 ly2 lx3 ly3)
-                 (setColor (mix-colors (:prime-4 theme) (:engaged theme)))
-                 (drawLine lx1 (+px ly1) lx2 (+px ly2))
-                 (drawLine lx2 (+px ly2) lx3 (+px ly3))]))]
-           (label-look-impl interop foreground text h-alignment v-alignment h 0 w h))
+ [(if (has-focus)
+    [(fill-component-rect h h (:prime-3 theme) (:focused theme))
+     (fill-component-rect (awt/+px 0 2) (awt/+px 0 2) (awt/-px h 4) (awt/-px h 4) (:prime-3 theme) (:prime-1 theme))]
+    (fill-component-rect h h (:prime-3 theme) (:prime-1 theme)))
+  (if pressed
+    (let [lx1 (awt/+px (* h 0.25))
+          ly1 (awt/+px (* h 0.375))
+          lx2 (awt/+px (* h 0.375))
+          ly2 (awt/+px (* h 0.5))
+          lx3 (awt/+px (* h 0.625))
+          ly3 (awt/+px (* h 0.25))]
+      [(setColor (:prime-4 theme))
+       (drawLine lx1 ly1 lx2 ly2)
+       (drawLine lx2 ly2 lx3 ly3)
+       (setColor (mix-colors (:prime-4 theme) (:engaged theme)))
+       (drawLine lx1 (+px ly1) lx2 (+px ly2))
+       (drawLine lx2 (+px ly2) lx3 (+px ly3))]))]
+ (label-look-impl interop foreground text h-alignment v-alignment h 0 w h))
 
 ;;;
 ;;; Slider
@@ -632,15 +505,20 @@ flatgui.skins.flat
                            ly2 (- (/ h 2) (* w 0.25))
                            lx3 (awt/+px (* w 0.625))
                            ly3 (- (/ h 2) (* w 0.0625))]
-                       (flatgui.skins.flat/arrow-up lx1 ly1 lx2 ly2 lx3 ly3 theme (:prime-1 theme) (:extra-2 theme)))
+                       ;(flatgui.skins.flat/arrow-up lx1 ly1 lx2 ly2 lx3 ly3 theme (:prime-1 theme) (:extra-2 theme))
+                       (arrow (/ h 4) 0 (/ h 2) h theme true)
+                       )
                      (= :desc mode)
                      (let [lx1 (* w 0.375)
                            ly1 (+ (/ h 2) (* w 0.0625))
                            lx2 (* w 0.5)
                            ly2 (+ (/ h 2) (* w 0.25))
                            lx3 (awt/+px (* w 0.625))
-                           ly3 (+ (/ h 2) (* w 0.0625))]
-                       (flatgui.skins.flat/arrow-down lx1 ly1 lx2 ly2 lx3 ly3 theme (:prime-1 theme) (:extra-2 theme))))
+                           ly3 (+ (/ h 2) (* w 0.0625))
+                           ]
+                       ;(flatgui.skins.flat/arrow-down lx1 ly1 lx2 ly2 lx3 ly3 theme (:prime-1 theme) (:extra-2 theme))
+                       (arrow (/ h 4) 0 (/ h 2) h theme false)
+                       ))
                   ;(if text (flatgui.awt/drawString text tx ty))
                   ]))
 
