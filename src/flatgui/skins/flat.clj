@@ -221,45 +221,7 @@ flatgui.skins.flat
 ;;; Spinner
 ;;;
 
-(defn arrow-up [lx1 ly1 lx2 ly2 lx3 ly3 theme fg bg]
-  [(setColor (mix-colors fg bg))
-
-   (drawLine lx1 ly1 lx2 ly2)
-   (drawLine lx2 ly2 lx3 ly3)
-
-   (setColor fg)
-
-   (drawLine (+px lx1) ly1 (-px lx3) ly3)
-
-   (drawLine (+px lx1) ly1 lx2 (+px ly2))
-   (drawLine lx2 (+px ly2) (-px lx3) ly3)
-
-   (drawLine (+px lx1 2) ly1 lx2 (+px ly2 2))
-   (drawLine lx2 (+px ly2 2) (-px lx3 2) ly3)
-
-   (drawLine (+px lx1 3) ly1 lx2 (+px ly2 3))
-   (drawLine lx2 (+px ly2 3) (-px lx3 3) ly3)])
-
-;(defn arrow-down [lx1 ly1 lx2 ly2 lx3 ly3 theme fg bg]
-;  [(setColor (mix-colors fg bg))
-;
-;   (drawLine lx1 ly1 lx2 ly2)
-;   (drawLine lx2 ly2 lx3 ly3)
-;
-;   (setColor fg)
-;
-;   (drawLine (+px lx1) ly1 (-px lx3) ly3)
-;
-;   (drawLine (+px lx1) ly1 lx2 (-px ly2))
-;   (drawLine lx2 (-px ly2) (-px lx3) ly3)
-;
-;   (drawLine (+px lx1 2) ly1 lx2 (-px ly2 2))
-;   (drawLine lx2 (-px ly2 2) (-px lx3 2) ly3)
-;
-;   (drawLine (+px lx1 3) ly1 lx2 (-px ly2 3))
-;   (drawLine lx2 (-px ly2 3) (-px lx3 3) ly3)])
-
-(defn arrow [x y w h theme up]
+(defn arrow [x y w h theme up color]
   (let [ye (if up 0.5 0.375)
         ym (if up 0.375 0.5)
         wpx (* w (/ 1 (awt/px)))
@@ -270,10 +232,9 @@ flatgui.skins.flat
         ly2 (+ y (awt/+px (* h ym)))
         lx3 (+ x (awt/+px (* w 0.75)))
         ly3 (+ y (awt/+px (* h ye)))]
-    [(setColor (:prime-4 theme))
-     (drawLine lx1 ly1 lx2 ly2)
+    [(drawLine lx1 ly1 lx2 ly2)
      (drawLine lx2 ly2 lx3 ly3)
-     (setColor (mix-colors (:prime-4 theme) (:engaged theme)))
+     (setColor (mix-colors color (:engaged theme)))
      (drawLine lx1 (+px ly1) lx2 (+px ly2))
      (drawLine lx2 (+px ly2) lx3 (+px ly3))]))
 
@@ -289,7 +250,7 @@ flatgui.skins.flat
        ly3 ly1
        dd (/ (- w h) 2)]
    ;(arrow-up lx1 ly1 lx2 ly2 lx3 ly3 theme (:prime-4 theme) (:prime-1 theme))
-   (arrow dd 0 h h theme true)
+   (arrow dd 0 h h theme true (:prime-4 theme))
    ))
 
 (deflookfn spinner-down-look (:pressed :has-mouse :theme :belongs-to-focused-editor)
@@ -303,13 +264,14 @@ flatgui.skins.flat
        ly3 ly1
        dd (/ (- w h) 2)]
    ;(arrow-down lx1 ly1 lx2 ly2 lx3 ly3 theme (:prime-4 theme) (:prime-1 theme))
-   (arrow dd 0 h h theme false)
+   (arrow dd 0 h h theme false (:prime-4 theme))
    ))
 
 (deflookfn leftsmooth-editor-look (:has-mouse :theme :focus-state :background :editable)
   (let [g (if (has-focus) 2 1)]
     [(fill-component-rect (+ w round-rect-r) h nil (if (has-focus) (:focused theme) (:prime-2 theme)))
-     (fill-component-rect (awt/+px 0 g) (awt/+px 0 g) (+ w round-rect-r) (awt/-px h (* 2 g)) nil background)]))
+     (fill-component-rect (awt/+px 0 g) (awt/+px 0 g) (+ w round-rect-r) (awt/-px h (* 2 g)) nil background)
+     (call-look textfield-look-impl)]))
 
 ;;;
 ;;; Combo Box
@@ -332,7 +294,7 @@ flatgui.skins.flat
            ;   (drawLine lx2 ly2 lx3 ly3)
            ;   (drawLine lx1 (+px ly1 2) (-px lx2) (+px ly2 1))
            ;   (drawLine (+px lx2) (+px ly2 1) lx3 (+px ly3 2))])
-           (arrow (/ h 4) 0 (/ h 2) h theme false)
+           (arrow (/ h 4) 0 (/ h 2) h theme false (:prime-4 theme))
            )
 
 (deflookfn dropdown-content-look (:theme)
@@ -506,7 +468,8 @@ flatgui.skins.flat
                            lx3 (awt/+px (* w 0.625))
                            ly3 (- (/ h 2) (* w 0.0625))]
                        ;(flatgui.skins.flat/arrow-up lx1 ly1 lx2 ly2 lx3 ly3 theme (:prime-1 theme) (:extra-2 theme))
-                       (arrow (/ h 4) 0 (/ h 2) h theme true)
+                       (setColor (:prime-1 theme))
+                       (arrow (/ h 4) 0 (/ h 2) h theme true (:prime-1 theme))
                        )
                      (= :desc mode)
                      (let [lx1 (* w 0.375)
@@ -517,7 +480,8 @@ flatgui.skins.flat
                            ly3 (+ (/ h 2) (* w 0.0625))
                            ]
                        ;(flatgui.skins.flat/arrow-down lx1 ly1 lx2 ly2 lx3 ly3 theme (:prime-1 theme) (:extra-2 theme))
-                       (arrow (/ h 4) 0 (/ h 2) h theme false)
+                       (setColor (:prime-1 theme))
+                       (arrow (/ h 4) 0 (/ h 2) h theme false (:prime-1 theme))
                        ))
                   ;(if text (flatgui.awt/drawString text tx ty))
                   ]))
