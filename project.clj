@@ -6,8 +6,7 @@
 ; the terms of this license.
 ; You must not remove this notice, or any other, from this software.
 
-;breaks IDE (load-string (slurp "../projectcommon.clj"))
-(def flatgui-version "0.2.0-SNAPSHOT")
+(def flatgui-version "0.2.1")
 
 (defproject org.flatgui/flatguiskins flatgui-version
   :description "Default FlatGUI skins"
