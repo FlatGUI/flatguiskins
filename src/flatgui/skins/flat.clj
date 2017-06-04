@@ -370,8 +370,8 @@ flatgui.skins.flat
            (loop [r [(flatgui.awt/setColor foreground)]
                   y 0
                   row-index 0]
-             (if (< row-index (count rendition))
-               (let [row (nth rendition row-index)
+             (if (< row-index (count (:rendition rendition)))
+               (let [row (nth (:rendition rendition) row-index)
                      row-h (:h row)]
                  (recur
                    (loop [rr r
@@ -382,10 +382,10 @@ flatgui.skins.flat
                              p-font (if-let [sf (:font (:style p))] sf font)
                              cmd-&-w (condp = (:type p)
 
-                                       :string [(awt/drawString (:data p) x (+ y (get-label-text-y interop row-h :center p-font)))
+                                       :string [(flatgui.awt/drawString (:data p) x (+ y (get-label-text-y interop row-h :center p-font)))
                                                 (flatgui.awt/sw interop (:data p) p-font)]
 
-                                       [(awt/drawString "?" x (get-label-text-y interop row-h :center font))
+                                       [(flatgui.awt/drawString "?" x (get-label-text-y interop row-h :center font))
                                         (flatgui.awt/sw interop "?" font)])]
                          (recur
                            (conj rr (first cmd-&-w))
@@ -394,7 +394,10 @@ flatgui.skins.flat
                        rr))
                    (+ y row-h)
                    (inc row-index)))
-               r)))
+               (conj
+                 r
+                 (let [cc (:caret-coords rendition)]
+                   (flatgui.awt/drawLine (nth cc 0) (nth cc 1) (nth cc 0) (+ (nth cc 1) (nth cc 2))))))))
 
 (deflookfn textrich-look (:focus-state :theme :background :paint-border)
            (if paint-border
