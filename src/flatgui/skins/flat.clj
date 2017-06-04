@@ -67,11 +67,13 @@ flatgui.skins.flat
     :right (- w (flatgui.awt/sw interop text))
     (/ (- w (flatgui.awt/sw interop text)) 2)))
 
-(defn get-label-text-y [interop h v-alignment]
-  (condp = v-alignment
-    :top (flatgui.awt/sasc interop)
-    :bottom (- h (- (flatgui.awt/sh interop) (flatgui.awt/sasc interop)))
-    (+ (- (/ h 2) (/ (flatgui.awt/sh interop) 2)) (flatgui.awt/sasc interop))))
+(defn get-label-text-y
+  ([interop h v-alignment font]
+   (condp = v-alignment
+     :top (flatgui.awt/sasc interop font)
+     :bottom (- h (- (flatgui.awt/sh interop font) (flatgui.awt/sasc interop font)))
+     (+ (- (/ h 2) (/ (flatgui.awt/sh interop font) 2)) (flatgui.awt/sasc interop font))))
+  ([interop h v-alignment] (get-label-text-y interop h v-alignment nil)))
 
 (defn label-look-impl [interop foreground text h-alignment v-alignment left top w h]
   [(flatgui.awt/setColor foreground)
@@ -359,6 +361,50 @@ flatgui.skins.flat
 
 
 ;;;
+;;; Rich text component
+;;;
+
+
+
+(deflookfn textrich-look-impl (:rendition :font :foreground)
+           (loop [r [(flatgui.awt/setColor foreground)]
+                  y 0
+                  row-index 0]
+             (if (< row-index (count rendition))
+               (let [row (nth rendition row-index)
+                     row-h (:h row)]
+                 (recur
+                   (loop [rr r
+                          x 0
+                          e 0]
+                     (if (< e (count (:primitives row)))
+                       (let [p (nth (:primitives row) e)
+                             p-font (if-let [sf (:font (:style p))] sf font)
+                             cmd-&-w (condp = (:type p)
+
+                                       :string [(awt/drawString (:data p) x (+ y (get-label-text-y interop row-h :center p-font)))
+                                                (flatgui.awt/sw interop (:data p) p-font)]
+
+                                       [(awt/drawString "?" x (get-label-text-y interop row-h :center font))
+                                        (flatgui.awt/sw interop "?" font)])]
+                         (recur
+                           (conj rr (first cmd-&-w))
+                           (+ x (second cmd-&-w))
+                           (inc e)))
+                       rr))
+                   (+ y row-h)
+                   (inc row-index)))
+               r)))
+
+(deflookfn textrich-look (:focus-state :theme :background :paint-border)
+           (if paint-border
+             (let [g (if (has-focus) 2 1)]
+               [(fill-component-rect w h nil (if (has-focus) (:focused theme) (:prime-2 theme)))
+                (fill-component-rect (awt/+px 0 g) (awt/+px 0 g) (awt/-px w (* 2 g)) (awt/-px h (* 2 g)) nil background)])
+             (fill-component-rect w h nil background))
+           (call-look textrich-look-impl))
+
+;;;
 ;;; Check Box
 ;;;
 
@@ -596,6 +642,7 @@ flatgui.skins.flat
    :scrollbar {:scroller scroller-look
                :scrollbar scrollbar-look}
    :textfield textfield-look
+   :textrich textrich-look
    :checkbox checkbox-look
    :radiobutton radiobutton-look
    :slider {:base sliderhandlebase-look
