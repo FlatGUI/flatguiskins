@@ -385,6 +385,8 @@ flatgui.skins.flat
                                        :string [(flatgui.awt/drawString (:data p) x (+ y (get-label-text-y interop row-h :center p-font)))
                                                 (flatgui.awt/sw interop (:data p) p-font)]
 
+                                       :image [(flatgui.awt/drawImage (:data p) x y) (:w (:size (:style p)))]
+
                                        [(flatgui.awt/drawString "?" x (get-label-text-y interop row-h :center font))
                                         (flatgui.awt/sw interop "?" font)])]
                          (recur
