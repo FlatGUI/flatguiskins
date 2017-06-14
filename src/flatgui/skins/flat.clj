@@ -387,6 +387,10 @@ flatgui.skins.flat
 
                                        :image [(flatgui.awt/drawImage (:data p) x y) (:w (:size (:style p)))]
 
+                                       :video (let [w (:w (:size (:style p)))
+                                                    h (:h (:size (:style p)))]
+                                                [(flatgui.awt/fitVideo (:data p) x y h h) w])
+
                                        [(flatgui.awt/drawString "?" x (get-label-text-y interop row-h :center font))
                                         (flatgui.awt/sw interop "?" font)])]
                          (recur
