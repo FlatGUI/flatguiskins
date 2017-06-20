@@ -129,23 +129,25 @@ flatgui.skins.flat
                                        (= i send-line) selection-end-in-line
                                        :else 0)}))
                      (range 0 (count lines)))]
-    (mapv
-      (fn [line-info]
-        (let [trunk-text (subs (:line line-info) first-visible-symbol)
-              caret-pos (:caret-pos model)
-              selection-mark (:selection-mark model)]
-          [(if (not= caret-pos selection-mark)
-             [(setColor (:prime-5 theme))
-              (let [sstart (:line-sstart line-info)
-                    send (:line-send line-info)
-                    x1 (get-caret-x interop trunk-text sstart)
-                    x2 (get-caret-x interop trunk-text send)]
-                (fillRect (+ h-margin x1) (+ v-margin (:y line-info)) (- x2 x1) line-h))])
-           (if caret-visible (call-look caret-look))
-           (if multiline
-             (label-look-impl interop foreground trunk-text h-alignment v-alignment h-margin (+ (:y line-info) v-margin) (- w (* h-margin 2)) line-h)
-             (label-look-impl interop foreground trunk-text h-alignment v-alignment h-margin v-margin (- w (* h-margin 2)) (- h (* v-margin 2))))]))
-      line-infos)))
+    (conj
+      (mapv
+        (fn [line-info]
+          (let [trunk-text (subs (:line line-info) first-visible-symbol)
+                caret-pos (:caret-pos model)
+                selection-mark (:selection-mark model)]
+            [(if (not= caret-pos selection-mark)
+               [(setColor (:prime-5 theme))
+                (let [sstart (:line-sstart line-info)
+                      send (:line-send line-info)]
+                  (if (not= sstart send)
+                    (let [x1 (get-caret-x interop trunk-text sstart)
+                          x2 (get-caret-x interop trunk-text send)]
+                      (fillRect (+ h-margin x1) (+ v-margin (:y line-info)) (- x2 x1) line-h))))])
+             (if multiline
+               (label-look-impl interop foreground trunk-text h-alignment v-alignment h-margin (+ (:y line-info) v-margin) (- w (* h-margin 2)) line-h)
+               (label-look-impl interop foreground trunk-text h-alignment v-alignment h-margin v-margin (- w (* h-margin 2)) (- h (* v-margin 2))))]))
+        line-infos)
+      (if caret-visible (call-look caret-look)))))
 
 
 ;;;;
