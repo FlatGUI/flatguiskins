@@ -85,7 +85,7 @@ flatgui.skins.flat
 
 (deflookfn label-look (:text :h-alignment :v-alignment :h-margin :v-margin)
   ;;TODO icon
-  (label-look-impl interop foreground text h-alignment v-alignment h-margin v-margin (- w v-margin) (- h v-margin)))
+  (label-look-impl interop foreground text h-alignment v-alignment h-margin v-margin (- w h-margin h-margin) (- h v-margin v-margin)))
 
 
 ;;;; TODO !!!! get-caret-x is duplicated: widget and skin. Find place for it single
@@ -210,6 +210,7 @@ flatgui.skins.flat
            (let [bc (if pressed
                       (:prime-2 theme)
                       (:prime-1 theme))]
+             ;; TODO there should be :background evolver fn instead of this
              [(if has-mouse (fill-component-rect w h (:prime-3 theme) bc))
               (call-look label-look)]))
 
