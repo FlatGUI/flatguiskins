@@ -367,9 +367,7 @@ flatgui.skins.flat
 ;;; Rich text component
 ;;;
 
-
-
-(deflookfn textrich-look-impl (:rendition :font :foreground)
+(deflookfn textrich-look-impl (:rendition :font :foreground :margin)
            (loop [r [(flatgui.awt/setColor foreground)]
                   y 0
                   row-index 0]
@@ -378,7 +376,7 @@ flatgui.skins.flat
                      row-h (:h row)]
                  (recur
                    (loop [rr r
-                          x 0
+                          x margin
                           e 0]
                      (if (< e (count (:primitives row)))
                        (let [p (nth (:primitives row) e)
@@ -405,8 +403,9 @@ flatgui.skins.flat
                    (inc row-index)))
                (conj
                  r
-                 (let [cc (:caret-coords rendition)]
-                   (flatgui.awt/drawLine (nth cc 0) (nth cc 1) (nth cc 0) (+ (nth cc 1) (nth cc 2))))))))
+                 (let [cc (:caret-coords rendition)
+                       lx (+ (nth cc 0) margin)]
+                   (flatgui.awt/drawLine lx (nth cc 1) lx (+ (nth cc 1) (nth cc 2))))))))
 
 (deflookfn textrich-look (:focus-state :theme :background :paint-border)
            (if paint-border
@@ -415,6 +414,65 @@ flatgui.skins.flat
                 (fill-component-rect (awt/+px 0 g) (awt/+px 0 g) (awt/-px w (* 2 g)) (awt/-px h (* 2 g)) nil background)])
              (fill-component-rect w h nil background))
            (call-look textrich-look-impl))
+
+;;;
+;;; Rich text component
+;;;
+
+(deflookfn textfield2-look-impl (:model :font :foreground :margin)
+  (let [lines (:lines model)
+        line-count (count lines)]
+    (loop [r [(flatgui.awt/setColor foreground)]
+           y 0
+           line-index 0]
+      (if (< line-index line-count)
+        (let [line (nth lines line-index)
+              primitives (:primitives line)
+              line-h (:h line)]
+          (recur
+            (loop [rr r
+                   x margin
+                   e 0]
+              (if (< e (count primitives))
+                (let [p (nth primitives e)
+                      p-font (if-let [sf (:font (:style p))] sf font)
+                      cmd-&-w (condp = (:type p)
+
+                                :string [(flatgui.awt/drawString (:data p) x (+ y (get-label-text-y interop line-h :center p-font)))
+                                         (flatgui.awt/sw interop (:data p) p-font)]
+
+                                :image [(flatgui.awt/drawImage (:data p) x y) (:w (:size (:style p)))]
+
+                                :video (let [w (:w (:size (:style p)))
+                                             h (:h (:size (:style p)))]
+                                         [(flatgui.awt/fitVideo (:data p) x y h h) w])
+
+                                [(flatgui.awt/drawString "?" x (get-label-text-y interop line-h :center font))
+                                 (flatgui.awt/sw interop "?" font)])]
+                  (recur
+                    (conj rr (first cmd-&-w))
+                    (+ x (second cmd-&-w))
+                    (inc e)))
+                rr))
+            (+ y line-h)
+            (inc line-index)))
+
+        ;(conj
+        ;  r
+        ;  (let [cc (:caret-coords rendition)
+        ;        lx (+ (nth cc 0) margin)]
+        ;    (flatgui.awt/drawLine lx (nth cc 1) lx (+ (nth cc 1) (nth cc 2)))))
+        r
+
+        ))))
+
+(deflookfn textfield2-look (:focus-state :theme :background :paint-border)
+  (if paint-border
+    (let [g (if (has-focus) 2 1)]
+      [(fill-component-rect w h nil (if (has-focus) (:focused theme) (:prime-2 theme)))
+       (fill-component-rect (awt/+px 0 g) (awt/+px 0 g) (awt/-px w (* 2 g)) (awt/-px h (* 2 g)) nil background)])
+    (fill-component-rect w h nil background))
+  (call-look textfield2-look-impl))
 
 ;;;
 ;;; Check Box
@@ -655,6 +713,7 @@ flatgui.skins.flat
                :scrollbar scrollbar-look}
    :textfield textfield-look
    :textrich textrich-look
+   :textfield2 textfield2-look
    :checkbox checkbox-look
    :radiobutton radiobutton-look
    :slider {:base sliderhandlebase-look
