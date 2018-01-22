@@ -419,6 +419,16 @@ flatgui.skins.flat
 ;;; Rich text component
 ;;;
 
+(defn- add-caret [rr caret-x y line-h]
+  (if caret-x
+    (conj rr (flatgui.awt/drawLine caret-x y caret-x (+ y line-h)))
+    rr))
+
+(defn- add-selection [rr s-start s-end y line-h]
+  (if (and s-start s-end)
+    (conj rr (flatgui.awt/fillRect s-start y (- s-end s-start) line-h))
+    rr))
+
 (deflookfn textfield2-look-impl (:model :font :foreground :margin)
   (let [lines (:lines model)
         line-count (count lines)]
@@ -431,29 +441,53 @@ flatgui.skins.flat
               line-h (:h line)]
           (recur
             (loop [rr r
-                   x margin
-                   e 0]
+                   ;x margin
+                   e 0
+                   caret-x nil
+                   s-start nil
+                   s-end nil]
               (if (< e (count primitives))
                 (let [p (nth primitives e)
                       p-font (if-let [sf (:font (:style p))] sf font)
-                      cmd-&-w (condp = (:type p)
+                      ;cmd-&-w (condp = (:type p)
+                      ;
+                      ;          :string [(flatgui.awt/drawString (:data p) x (+ y (get-label-text-y interop line-h :center p-font)))
+                      ;                   (flatgui.awt/sw interop (:data p) p-font)]
+                      ;
+                      ;          :image [(flatgui.awt/drawImage (:data p) x y) (:w (:size (:style p)))]
+                      ;
+                      ;          :video (let [w (:w (:size (:style p)))
+                      ;                       h (:h (:size (:style p)))]
+                      ;                   [(flatgui.awt/fitVideo (:data p) x y h h) w])
+                      ;
+                      ;          [(flatgui.awt/drawString "?" x (get-label-text-y interop line-h :center font))
+                      ;           (flatgui.awt/sw interop "?" font)])]
+                      x (:x p)
+                      cmd (condp = (:type p)
 
-                                :string [(flatgui.awt/drawString (:data p) x (+ y (get-label-text-y interop line-h :center p-font)))
-                                         (flatgui.awt/sw interop (:data p) p-font)]
+                                :string (flatgui.awt/drawString (:data p) x (+ y (get-label-text-y interop line-h :center p-font)))
 
-                                :image [(flatgui.awt/drawImage (:data p) x y) (:w (:size (:style p)))]
+                                :image (flatgui.awt/drawImage (:data p) x y)
 
                                 :video (let [w (:w (:size (:style p)))
                                              h (:h (:size (:style p)))]
-                                         [(flatgui.awt/fitVideo (:data p) x y h h) w])
+                                         (flatgui.awt/fitVideo (:data p) x y w h))
 
-                                [(flatgui.awt/drawString "?" x (get-label-text-y interop line-h :center font))
-                                 (flatgui.awt/sw interop "?" font)])]
+                                (flatgui.awt/drawString "?" x (get-label-text-y interop line-h :center font)))]
+
                   (recur
-                    (conj rr (first cmd-&-w))
-                    (+ x (second cmd-&-w))
-                    (inc e)))
-                rr))
+                    (conj rr cmd);(conj rr (first cmd-&-w))
+                    ;(+ x (:w p));(+ x (second cmd-&-w))
+                    (inc e)
+                    (if-let [cx (:caret-x p)] (+ x cx))
+                    (if-let [ss (:s-start p)] (+ x ss))
+                    (if-let [se (:s-end p)] (+ x se))
+                    ))
+
+                (->
+                  (add-selection rr s-start s-end y line-h)
+                  (add-caret caret-x y line-h))))
+
             (+ y line-h)
             (inc line-index)))
 
