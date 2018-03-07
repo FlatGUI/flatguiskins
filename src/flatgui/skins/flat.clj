@@ -424,13 +424,14 @@ flatgui.skins.flat
     (conj rr (flatgui.awt/drawLine caret-x y caret-x (+ y line-h)))
     rr))
 
-(defn- add-selection [rr s-start s-end y line-h]
+(defn- add-selection [rr s-start s-end y line-h theme]
   (if (and s-start s-end)
-    (conj rr (flatgui.awt/fillRect s-start y (- s-end s-start) line-h))
+    (vec (concat [(setColor (:prime-5 theme)) (flatgui.awt/fillRect s-start y (- s-end s-start) line-h)] rr))
     rr))
 
-(deflookfn textfield2-look-impl (:model :font :foreground :margin)
-  (let [lines (:lines model)
+(deflookfn textfield2-look-impl (:model :font :foreground :theme :margin)
+  (let [_ (println "----------------------------------- look --------------------------------------")
+        lines (:lines model)
         line-count (count lines)]
     (loop [r [(flatgui.awt/setColor foreground)]
            y 0
@@ -448,6 +449,7 @@ flatgui.skins.flat
                    s-end nil]
               (if (< e (count primitives))
                 (let [p (nth primitives e)
+                      _ (println p)
                       p-font (if-let [sf (:font (:style p))] sf font)
                       ;cmd-&-w (condp = (:type p)
                       ;
@@ -485,7 +487,7 @@ flatgui.skins.flat
                     ))
 
                 (->
-                  (add-selection rr s-start s-end y line-h)
+                  (add-selection rr s-start s-end y line-h theme)
                   (add-caret caret-x y line-h))))
 
             (+ y line-h)
