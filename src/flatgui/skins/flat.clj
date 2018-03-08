@@ -430,7 +430,7 @@ flatgui.skins.flat
     rr))
 
 (deflookfn textfield2-look-impl (:model :font :foreground :theme :margin)
-  (let [_ (println "----------------------------------- look --------------------------------------")
+  (let [;_ (println "----------------------------------- look --------------------------------------")
         lines (:lines model)
         line-count (count lines)]
     (loop [r [(flatgui.awt/setColor foreground)]
@@ -449,7 +449,7 @@ flatgui.skins.flat
                    s-end nil]
               (if (< e (count primitives))
                 (let [p (nth primitives e)
-                      _ (println p)
+
                       p-font (if-let [sf (:font (:style p))] sf font)
                       ;cmd-&-w (condp = (:type p)
                       ;
